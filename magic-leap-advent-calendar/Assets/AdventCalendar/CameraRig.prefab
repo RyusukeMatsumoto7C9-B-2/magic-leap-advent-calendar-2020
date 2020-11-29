@@ -305,7 +305,7 @@ GameObject:
   m_Component:
   - component: {fileID: 260739982689998742}
   - component: {fileID: 260739982689998740}
-  - component: {fileID: 260739982689998743}
+  - component: {fileID: 1965966019}
   m_Layer: 0
   m_Name: HandController
   m_TagString: Untagged
@@ -341,7 +341,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   palmCollisions: 0
---- !u!114 &260739982689998743
+--- !u!114 &1965966019
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

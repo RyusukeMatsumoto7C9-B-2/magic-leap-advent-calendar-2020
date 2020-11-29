@@ -47,7 +47,7 @@ PlayerSettings:
   defaultScreenWidthWeb: 960
   defaultScreenHeightWeb: 600
   m_StereoRenderingPath: 0
-  m_ActiveColorSpace: 0
+  m_ActiveColorSpace: 1
   m_MTRendering: 1
   m_StackTraceTypes: 010000000100000001000000010000000100000001000000
   iosShowActivityIndicatorOnLoading: -1
@@ -120,7 +120,9 @@ PlayerSettings:
     16:9: 1
     Others: 1
   bundleVersion: 0.1
-  preloadedAssets: []
+  preloadedAssets:
+  - {fileID: 5159937320618908982, guid: 193afcf7287b46e4c9aeb524a1a500ad, type: 2}
+  - {fileID: 11400000, guid: 2647bd3bc1e3f374f9d3e02621509e85, type: 2}
   metroInputSource: 0
   wsaTransparentSwapchain: 0
   m_HolographicPauseOnTrackingLoss: 1
@@ -666,7 +668,7 @@ PlayerSettings:
     m_ModelFolderPath: 
     m_PortalFolderPath: 
   luminCert:
-    m_CertPath: 
+    m_CertPath: E:/MagicLeapTheLab/CertificatesFIles/MagicLeapSandBox/sandbox.cert
     m_SignPackage: 1
   luminIsChannelApp: 0
   luminVersion:

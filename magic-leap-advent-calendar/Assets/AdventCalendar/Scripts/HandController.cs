@@ -8,7 +8,7 @@ using Cysharp.Threading.Tasks;
 using UniRx;
 
 
-namespace FriendsMl.Player
+namespace AdventCalendar
 {
     /// <summary>
     /// ハンドコントローラ.

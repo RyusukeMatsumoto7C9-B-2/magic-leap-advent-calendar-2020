@@ -72,9 +72,6 @@ namespace AdventCalendar
             rHand.Gesture.OnKeyPoseChanged += OnHandGesturePoseChanged;
             lHand.Gesture.OnKeyPoseChanged += OnHandGesturePoseChanged;
             
-            RegisterCustomGesture(1f, HandPose.RFist, HandPose.ROpenHand, () => { Debug.Log("R Jejeje");});
-            RegisterCustomGesture(1f, HandPose.LFist, HandPose.LOpenHand, () => { Debug.Log("L Jejeje");});
-                
             // 確認用にジェスチャをDebug.Logに出力.
             this.ObserveEveryValueChanged(_ => handPose).Subscribe(e =>
             {

@@ -52,7 +52,6 @@ namespace FriendsMl.Player
         ManagedHand rHand;
         ManagedHand lHand;
         [SerializeField] GameObject handVisualizer;
-        //[SerializeField] GameObject handMesh;
         [field: SerializeField] bool IsGestureLogOutput { get; set; } = false;
 
         
@@ -93,10 +92,8 @@ namespace FriendsMl.Player
         {
 #if UNITY_EDITOR
             handVisualizer.SetActive(true);
-//            handMesh.SetActive(false);
 #elif !UNITY_EDITOR || UNITY_LUMIN
             handVisualizer.SetActive(false);
-//            handMesh.SetActive(true);
 #endif
         }
 

@@ -1,9 +1,9 @@
 ﻿using System;
 using MagicLeapTools;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.XR.MagicLeap;
 using Debug = UnityEngine.Debug;
-
 using Cysharp.Threading.Tasks;
 using UniRx;
 
@@ -71,15 +71,11 @@ namespace AdventCalendar
             lHand = HandInput.Left;
             rHand.Gesture.OnKeyPoseChanged += OnHandGesturePoseChanged;
             lHand.Gesture.OnKeyPoseChanged += OnHandGesturePoseChanged;
-
-            CreateGestureCommandObserver(1.0f, HandPose.RFist, HandPose.ROpenHand)
-                .Subscribe(e => Debug.Log("R Jejeje"))
-                .AddTo(this);
-
-            CreateGestureCommandObserver(1.0f, HandPose.LFist, HandPose.LOpenHand)
-                .Subscribe(e => Debug.Log("L Jejeje"))
-                .AddTo(this);
+            
+            RegisterCustomGesture(1f, HandPose.RFist, HandPose.ROpenHand, () => { Debug.Log("R Jejeje");});
+            RegisterCustomGesture(1f, HandPose.LFist, HandPose.LOpenHand, () => { Debug.Log("L Jejeje");});
                 
+            // 確認用にジェスチャをDebug.Logに出力.
             this.ObserveEveryValueChanged(_ => handPose).Subscribe(e =>
             {
                 if (IsGestureLogOutput)
@@ -125,13 +121,11 @@ namespace AdventCalendar
         /// <param name="time"></param>
         /// <param name="poseA"></param>
         /// <param name="poseB"></param>
-        /// <param name="option"></param>
         /// <returns></returns>
         private IObservable<KeyInfo> CreateGestureCommandObserver(
             float time,
             HandPose poseA,
-            HandPose poseB,
-            Func<bool> option = null)
+            HandPose poseB)
         {
             // 指定したキーの判定を通知するObserverを返す.
             IObservable<KeyInfo> GetInputObserver(HandPose pose)
@@ -145,14 +139,30 @@ namespace AdventCalendar
             observer = observer.Merge(GetInputObserver(poseB))
                 .Buffer(2, 1)
                 .Where(b => b[1].time - b[0].time < time)
-                .Where(b =>
-                {
-                    bool ret = b[0].pose == poseA && b[1].pose == poseB;
-                    return option == null ? ret : option.Invoke() && ret;
-                })
+                .Where(b => b[0].pose == poseA && b[1].pose == poseB)
                 .Select(b => b[1]);
 
             return observer;
+        }
+
+
+        /// <summary>
+        /// カスタムジェスチャを登録し、登録したカスタムジェスチャが発火されたら実行する.
+        /// </summary>
+        /// <param name="time"></param>
+        /// <param name="poseA"></param>
+        /// <param name="poseB"></param>
+        /// <param name="callback"></param>
+        public void RegisterCustomGesture(
+            float time,
+            HandPose poseA,
+            HandPose poseB,
+            UnityAction callback,
+            Func<bool> option = null)
+        {
+            CreateGestureCommandObserver(time, poseA, poseB)
+                .Subscribe(e => callback?.Invoke())
+                .AddTo(this);
         }
 
     }

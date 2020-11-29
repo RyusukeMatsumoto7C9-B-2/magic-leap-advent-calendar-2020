@@ -119,6 +119,14 @@ namespace AdventCalendar
         }
 
 
+        /// <summary>
+        /// ジェスチャコマンドのオブザーバー作成.
+        /// </summary>
+        /// <param name="time"></param>
+        /// <param name="poseA"></param>
+        /// <param name="poseB"></param>
+        /// <param name="option"></param>
+        /// <returns></returns>
         private IObservable<KeyInfo> CreateGestureCommandObserver(
             float time,
             HandPose poseA,

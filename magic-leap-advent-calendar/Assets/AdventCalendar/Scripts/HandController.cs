@@ -16,7 +16,7 @@ namespace AdventCalendar
     public class HandController : MonoBehaviour
     {
 
-        struct KeyInfo
+        private struct KeyInfo
         {
             public HandPose pose;
             public float time;
@@ -48,11 +48,11 @@ namespace AdventCalendar
         }
 
 
-        HandPose handPose;
-        ManagedHand rHand;
-        ManagedHand lHand;
-        [SerializeField] GameObject handVisualizer;
-        [field: SerializeField] bool IsGestureLogOutput { get; set; } = false;
+        private HandPose handPose;
+        private ManagedHand rHand;
+        private ManagedHand lHand;
+        [SerializeField] private GameObject handVisualizer;
+        [field: SerializeField] public bool IsGestureLogOutput { get; set; } = false;
 
         
 

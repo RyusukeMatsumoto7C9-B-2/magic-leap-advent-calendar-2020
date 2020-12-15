@@ -40,7 +40,7 @@ namespace AdventCalendar.HandPointer
                 Vector3 position)
             {
                 LastStart = Start;
-                Start = position;
+                Start = Vector3.Lerp(LastStart, position, 0.5f);
             }
 
         }
@@ -185,10 +185,9 @@ namespace AdventCalendar.HandPointer
                 }
             }
 
-            // TODO : ポインターのスタート位置の計算はPointerPosition内に収めるべき.
             // Rayのスタート位置計算.
-            leftPointerPosition.SetStartPosition(Vector3.Lerp(leftPointerPosition.LastStart, GetRayStartPosition(HandInput.Left), 0.5f));
-            rightPointerPosition.SetStartPosition(Vector3.Lerp(rightPointerPosition.LastStart, GetRayStartPosition(HandInput.Right), 0.5f));
+            leftPointerPosition.SetStartPosition(GetRayStartPosition(HandInput.Left));
+            rightPointerPosition.SetStartPosition(GetRayStartPosition(HandInput.Right));
             
             // ここで肩から手までのベクトルを求める.
             Vector3 leftShoulderPosition = GetShoulderPosition(MLHandTracking.HandType.Left);

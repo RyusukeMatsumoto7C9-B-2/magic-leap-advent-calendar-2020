@@ -296,6 +296,7 @@ namespace AdventCalendar.HandPointer
             => Vector3.Lerp(hand.Skeleton.Thumb.Knuckle.positionFiltered, hand.Skeleton.Index.Knuckle.positionFiltered, 0.5f);
 
 
+        // TODO : あくまでRayまでを求めることとする( normalizeする )このメソッドは後で削除予定.
         /// <summary>
         /// Eyeトラッキングのターゲットを取得.
         /// </summary>
@@ -319,6 +320,26 @@ namespace AdventCalendar.HandPointer
 
         
         /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private (bool isValid, Vector3 normalizedDir) GetEyeTrackingNormalizedDir()
+        {
+            if (!IsEyeTrackingValid) return (false, Vector3.zero);
+            
+            bool isBlink = MLEyes.LeftEye.IsBlinking || MLEyes.RightEye.IsBlinking;
+            if (isBlink) return (false, Vector3.zero);
+
+            // Eyeトラッキングが有効ならEyeトラッキングの向きで補正する.
+            float leftConfidence = MLEyes.LeftEye.CenterConfidence * -0.5f;
+            float rightConfidence = MLEyes.RightEye.CenterConfidence * 0.5f;
+            float eyeRatio = 0.5f + (leftConfidence + rightConfidence);
+            return (true, Vector3.Lerp(MLEyes.LeftEye.ForwardGaze, MLEyes.RightEye.ForwardGaze, eyeRatio).normalized);
+        }
+
+
+        // TODO : あくまでDirctionを求めるまでとする( normalize する )このメソッドは後で削除予定.
+        /// <summary>
         /// Headトラッキングのターゲットを取得.
         /// </summary>
         /// <returns></returns>
@@ -331,6 +352,14 @@ namespace AdventCalendar.HandPointer
 
             return (true, targetPos);
         }
+
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
+        private (bool isValid, Vector3 normalizedDir) GetHeadTrackingNormalizedDir()
+            => (mainCamera == null) ?(false, Vector3.zero) : (true, mainCamera.forward.normalized);
 
 
         /// <summary>

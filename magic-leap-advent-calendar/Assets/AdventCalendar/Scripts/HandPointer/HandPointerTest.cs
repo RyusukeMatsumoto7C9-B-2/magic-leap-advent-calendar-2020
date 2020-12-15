@@ -16,12 +16,12 @@ namespace AdventCalendar.HandPointer
 
         void Start()
         {
-            pointer = GetComponent<HandPointer>();
             if (pointer != null)
             {
                 pointer.RegisterOnSelectHandler(OnSelectHandler);
                 pointer.RegisterOnSelectContinueHandler(OnSelectContinueHandler);
             }
+            pointer.Show();
 
         }
 

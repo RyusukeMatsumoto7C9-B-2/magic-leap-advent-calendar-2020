@@ -8,9 +8,10 @@ namespace AdventCalendar.HandPointer
     public class HandPointerCursor : IHandPointerCursor
     {
 
-        LineRenderer lineRenderer;
-        GameObject cursor = null;
+        private LineRenderer lineRenderer;
+        private GameObject cursor = null;
 
+        
         public HandPointerCursor(
             LineRenderer _lineRenderer,
             GameObject _cursor)

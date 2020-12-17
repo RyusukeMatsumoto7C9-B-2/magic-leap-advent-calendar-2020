@@ -249,28 +249,12 @@ namespace AdventCalendar.HandPointer
                     RightHandState = pose == SelectKeyPose ? HandPointerState.Selected : HandPointerState.NoSelected;
                     if (RightHandState == HandPointerState.Selected)
                     {
-                        var result = GetSelect(MLHandTracking.HandType.Right);
+                        (bool, HandPointerSelect) result = GetSelect(MLHandTracking.HandType.Right);
                         if (result.Item1)
                             onSelect?.Invoke(result.Item2);
                     }
                     break;
             }
-
-            /*
-            if (LeftHandState == HandPointerState.Selected)
-            {
-                (bool, HandPointerSelect) result = GetSelect(MLHandTracking.HandType.Left);
-                if (result.Item1)
-                    onSelect?.Invoke(result.Item2);
-            }
-            
-            if (RightHandState == HandPointerState.Selected)
-            {
-                var result = GetSelect(MLHandTracking.HandType.Right);
-                if (result.Item1)
-                    onSelect?.Invoke(result.Item2);
-            }
-        */
         }
 
 

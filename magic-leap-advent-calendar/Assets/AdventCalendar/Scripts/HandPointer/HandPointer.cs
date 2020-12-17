@@ -66,13 +66,13 @@ namespace AdventCalendar.HandPointer
         public HandPointerState LeftHandState { get; private set; } = HandPointerState.None;
         public HandPointerState RightHandState { get; private set; } = HandPointerState.None;
 
-        OnSelectEvent onSelect = new OnSelectEvent();
-        OnSelectEvent onSelectContinue = new OnSelectEvent();
+        private OnSelectEvent onSelect = new OnSelectEvent();
+        private OnSelectEvent onSelectContinue = new OnSelectEvent();
 
         private PointerPosition leftPointerPosition;
         private PointerPosition rightPointerPosition;
-        IHandPointerCursor leftCursor;
-        IHandPointerCursor rightCursor;
+        private IHandPointerCursor leftCursor;
+        private IHandPointerCursor rightCursor;
 
         // TODO : デバッグ用パラメータ.
         private Vector3 debugRightShoulderPosition;
@@ -86,7 +86,7 @@ namespace AdventCalendar.HandPointer
         /// <summary>
         /// Eyeトラッキングが有効か否か.
         /// </summary>
-        bool IsEyeTrackingValid => MLEyes.IsStarted && MLEyes.CalibrationStatus == MLEyes.Calibration.Good;
+        private bool IsEyeTrackingValid => MLEyes.IsStarted && MLEyes.CalibrationStatus == MLEyes.Calibration.Good;
 
         /// <summary>
         /// 描画しているか否か.
@@ -94,7 +94,7 @@ namespace AdventCalendar.HandPointer
         public bool IsShow { get; private set; } = false;
 
 
-        void Start()
+        private void Start()
         {
             if (HandInput.Ready)
             {
@@ -120,7 +120,7 @@ namespace AdventCalendar.HandPointer
         }
 
         
-        void Update()
+        private void Update()
         {
             UpdateHandRay();
             
@@ -143,7 +143,7 @@ namespace AdventCalendar.HandPointer
         /// <summary>
         /// HandPointerのカーソル生成.
         /// </summary>
-        GameObject CreateCursor(
+        private GameObject CreateCursor(
             string name)
         {
             if (cursorPrefab == null) return null;
@@ -154,7 +154,7 @@ namespace AdventCalendar.HandPointer
 
 
         
-        void UpdateHandRay()
+        private void UpdateHandRay()
         {
             if (!HandInput.Ready || !IsShow)
             {
@@ -212,7 +212,7 @@ namespace AdventCalendar.HandPointer
         /// <param name="ray"></param>
         /// <param name="maxDistance"></param>
         /// <returns></returns>
-        (bool, HandPointerSelect) GetRayCastHitTarget(
+        private (bool, HandPointerSelect) GetRayCastHitTarget(
             Ray ray,
             float maxDistance)
         {
@@ -226,7 +226,7 @@ namespace AdventCalendar.HandPointer
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        (bool, HandPointerSelect) GetSelect(
+        private (bool, HandPointerSelect) GetSelect(
             MLHandTracking.HandType type)
         {
             Vector3 start = type == MLHandTracking.HandType.Left ? leftPointerPosition.Start : rightPointerPosition.Start;
@@ -240,7 +240,7 @@ namespace AdventCalendar.HandPointer
         /// </summary>
         /// <param name="hand"></param>
         /// <param name="pose"></param>
-        void OnHandGesturePoseChange(
+        private void OnHandGesturePoseChange(
             ManagedHand hand,
             MLHandTracking.HandKeyPose pose)
         {
@@ -276,7 +276,7 @@ namespace AdventCalendar.HandPointer
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        LineRenderer CreateLineRenderer(
+        private LineRenderer CreateLineRenderer(
             string name)
         {
             var ret = GameObject.Instantiate(new GameObject(name), transform).AddComponent<LineRenderer>();
@@ -292,7 +292,7 @@ namespace AdventCalendar.HandPointer
         /// </summary>
         /// <param name="hand"></param>
         /// <returns></returns>
-        Vector3 GetRayStartPosition(ManagedHand hand) 
+        private Vector3 GetRayStartPosition(ManagedHand hand) 
             => Vector3.Lerp(hand.Skeleton.Thumb.Knuckle.positionFiltered, hand.Skeleton.Index.Knuckle.positionFiltered, 0.5f);
 
         
@@ -327,7 +327,7 @@ namespace AdventCalendar.HandPointer
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        Vector3 GetShoulderPosition(
+        private Vector3 GetShoulderPosition(
             MLHandTracking.HandType type)
         {
             Vector3 headPosition = mainCamera.position;

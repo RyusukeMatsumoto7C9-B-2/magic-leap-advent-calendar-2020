@@ -1,7 +1,4 @@
-﻿using System;
-using UnityEngine.XR.MagicLeap;
-using MagicLeapTools;
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace AdventCalendar.HandPointer
 {
@@ -10,11 +7,11 @@ namespace AdventCalendar.HandPointer
     /// </summary>
     public class HandPointerTest : MonoBehaviour
     {
-        [SerializeField] HandPointer pointer;
-        [SerializeField] Transform targetObj;
+        [SerializeField] private HandPointer pointer;
+        [SerializeField] private Transform targetObj;
 
 
-        void Start()
+        private void Start()
         {
             if (pointer != null)
             {
@@ -23,15 +20,6 @@ namespace AdventCalendar.HandPointer
             }
             pointer.Show();
 
-        }
-
-
-        private void LateUpdate()
-        {
-            if (pointer == null)
-            {
-                return;
-            }
         }
 
 

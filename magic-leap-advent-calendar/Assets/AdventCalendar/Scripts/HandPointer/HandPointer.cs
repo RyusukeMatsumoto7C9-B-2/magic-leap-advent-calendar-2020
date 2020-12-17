@@ -7,18 +7,18 @@ namespace AdventCalendar.HandPointer
 {
     /// <summary>
     /// ハンドトラッキングでのポインター.
-    /// こいつだけで両手分の処理を行いたい.
+    /// こいつだけで両手分の処理を行う.
     /// </summary>
     public class HandPointer : MonoBehaviour, IHandPointer
     {
 
-        #region --- class OnSelectEvent ---
-        class OnSelectEvent : UnityEvent<HandPointerSelect> { }
-        #endregion --- class OnSelectEvent ---
+        #region --- class SelectEvent ---
+        private class SelectEvent : UnityEvent<HandPointerSelect> { }
+        #endregion --- class SelectEvent ---
 
         
         #region --- class PointerPosition ---
-        class PointerPosition
+        private class PointerPosition
         {
             public Vector3 Target { get; private set; } = Vector3.zero;
             public Vector3 LastTarget { get; private set; } = Vector3.zero;
@@ -56,9 +56,10 @@ namespace AdventCalendar.HandPointer
         }
         
 
-        [SerializeField] Transform mainCamera;
-        [SerializeField] float speed = 1f;
-        [SerializeField] GameObject cursorPrefab; // ポインターの先端に配置するカーソルのプレハブ,設定されていなければ利用しない.
+        [SerializeField] private Transform mainCamera;
+        [SerializeField] private float speed = 1f;
+        [SerializeField] private GameObject cursorPrefab; // ポインターの先端に配置するカーソルのプレハブ,設定されていなければ利用しない.
+        [SerializeField] private float eyeTrackingRatio = 0.3f;
 
         public float PointerRayDistance { get; set; } = 2f;
         public MLHandTracking.HandKeyPose SelectKeyPose { get; set; } = MLHandTracking.HandKeyPose.Pinch;
@@ -66,8 +67,8 @@ namespace AdventCalendar.HandPointer
         public HandPointerState LeftHandState { get; private set; } = HandPointerState.None;
         public HandPointerState RightHandState { get; private set; } = HandPointerState.None;
 
-        private OnSelectEvent onSelect = new OnSelectEvent();
-        private OnSelectEvent onSelectContinue = new OnSelectEvent();
+        private SelectEvent onSelect = new SelectEvent();
+        private SelectEvent onSelectContinue = new SelectEvent();
 
         private PointerPosition leftPointerPosition;
         private PointerPosition rightPointerPosition;
@@ -79,7 +80,6 @@ namespace AdventCalendar.HandPointer
         private Vector3 debugLeftShoulderPosition;
         
         public float shoulderWidth = 0.2f;
-        public float late = 0.3f;
         // =========================
         
 
@@ -152,7 +152,6 @@ namespace AdventCalendar.HandPointer
             return cursor;
         }
 
-
         
         private void UpdateHandRay()
         {
@@ -167,42 +166,32 @@ namespace AdventCalendar.HandPointer
             RightHandState = HandInput.Right.Visible ? RightHandState: HandPointerState.None;
             leftCursor.Show();
             rightCursor.Show();
-            
-            Vector3 tempTargetDir = Vector3.zero;
-            (bool isValid, Vector3 dir) eyeTrackingDir = GetEyeTrackingNormalizedDir();
-            if (eyeTrackingDir.isValid)
-            {
-                tempTargetDir = eyeTrackingDir.dir;
-            }
-            else
-            {
-                (bool isValid, Vector3 dir) headTrackingDir = GetHeadTrackingNormalizedDir();
-                if (headTrackingDir.isValid)
-                {
-                    tempTargetDir = headTrackingDir.dir;
-                }
-                else
-                {
-                    LeftHandState = RightHandState = HandPointerState.None;
-                }
-            }
 
             // Rayのスタート位置計算.
             leftPointerPosition.SetStartPosition(GetRayStartPosition(HandInput.Left));
             rightPointerPosition.SetStartPosition(GetRayStartPosition(HandInput.Right));
-            
-            // ここで肩から手までのベクトルを求める.
-            Vector3 leftShoulderPosition = GetShoulderPosition(MLHandTracking.HandType.Left);
-            Vector3 leftHandDir = (leftPointerPosition.Start - leftShoulderPosition).normalized;
-            Vector3 leftHandTarget = leftPointerPosition.Start + (Vector3.Lerp(leftHandDir, tempTargetDir, late) * PointerRayDistance);
-            leftPointerPosition.SetTarget(Vector3.Lerp(leftPointerPosition.LastTarget, leftHandTarget, Time.deltaTime * speed));
+
+            // ポインターの更新.
+            leftPointerPosition.SetTarget(Vector3.Lerp(leftPointerPosition.LastTarget, GetCurrentTargetPosition(MLHandTracking.HandType.Left), Time.deltaTime * speed));
             leftCursor.Update(LeftHandState, leftPointerPosition.Start, leftPointerPosition.Target);
 
-            Vector3 rightShoulderPosition = GetShoulderPosition(MLHandTracking.HandType.Right);
-            Vector3 rightHandDir = (rightPointerPosition.Start - rightShoulderPosition).normalized;
-            Vector3 rightHandTarget = rightPointerPosition.Start + (Vector3.Lerp(rightHandDir, tempTargetDir, late) * PointerRayDistance);
-            rightPointerPosition.SetTarget(Vector3.Lerp(rightPointerPosition.LastTarget, rightHandTarget, Time.deltaTime * speed));
+            rightPointerPosition.SetTarget(Vector3.Lerp(rightPointerPosition.LastTarget, GetCurrentTargetPosition(MLHandTracking.HandType.Right), Time.deltaTime * speed));
             rightCursor.Update(RightHandState, rightPointerPosition.Start, rightPointerPosition.Target);
+        }
+
+
+        private Vector3 GetCurrentTargetPosition(
+            MLHandTracking.HandType type)
+        {
+            Vector3 tempTargetDir = Vector3.zero;
+            (bool isValid, Vector3 dir) eyeTrackingDir = GetEyeTrackingNormalizedDir();
+            if (eyeTrackingDir.isValid)
+                tempTargetDir = eyeTrackingDir.dir;
+
+            Vector3 start = type == MLHandTracking.HandType.Left ? leftPointerPosition.Start : rightPointerPosition.Start;
+            Vector3 shoulderToHandDir = (start - GetShoulderPosition(type)).normalized;
+            Vector3 dir = tempTargetDir == Vector3.zero ? shoulderToHandDir : Vector3.Lerp(shoulderToHandDir, tempTargetDir, eyeTrackingRatio).normalized;
+            return start + dir * PointerRayDistance;
         }
 
 
@@ -248,16 +237,29 @@ namespace AdventCalendar.HandPointer
             {
                 case MLHandTracking.HandType.Left:
                     LeftHandState = pose == SelectKeyPose ? HandPointerState.Selected : HandPointerState.NoSelected;
+                    if (LeftHandState == HandPointerState.Selected)
+                    {
+                        (bool, HandPointerSelect) result = GetSelect(MLHandTracking.HandType.Left);
+                        if (result.Item1)
+                            onSelect?.Invoke(result.Item2);
+                    }
                     break;
                 
                 case MLHandTracking.HandType.Right:
                     RightHandState = pose == SelectKeyPose ? HandPointerState.Selected : HandPointerState.NoSelected;
+                    if (RightHandState == HandPointerState.Selected)
+                    {
+                        var result = GetSelect(MLHandTracking.HandType.Right);
+                        if (result.Item1)
+                            onSelect?.Invoke(result.Item2);
+                    }
                     break;
             }
 
+            /*
             if (LeftHandState == HandPointerState.Selected)
             {
-                var result = GetSelect(MLHandTracking.HandType.Left);
+                (bool, HandPointerSelect) result = GetSelect(MLHandTracking.HandType.Left);
                 if (result.Item1)
                     onSelect?.Invoke(result.Item2);
             }
@@ -268,6 +270,7 @@ namespace AdventCalendar.HandPointer
                 if (result.Item1)
                     onSelect?.Invoke(result.Item2);
             }
+        */
         }
 
 
@@ -279,7 +282,7 @@ namespace AdventCalendar.HandPointer
         private LineRenderer CreateLineRenderer(
             string name)
         {
-            var ret = GameObject.Instantiate(new GameObject(name), transform).AddComponent<LineRenderer>();
+            var ret = Instantiate(new GameObject(name), transform).AddComponent<LineRenderer>();
             ret.startWidth = 0.01f;
             ret.endWidth = 0.01f;
             ret.enabled = false;
@@ -315,13 +318,6 @@ namespace AdventCalendar.HandPointer
         }
 
         
-        /// <summary>
-        /// 頭の向きを取得.
-        /// </summary>
-        /// <returns></returns>
-        private (bool isValid, Vector3 normalizedDir) GetHeadTrackingNormalizedDir() => (mainCamera == null) ?(false, Vector3.zero) : (true, mainCamera.forward.normalized);
-
-
         /// <summary>
         /// 頭の位置から推定した肩の座標を取得.
         /// </summary>
@@ -360,7 +356,7 @@ namespace AdventCalendar.HandPointer
             UnityAction<HandPointerSelect> callback)
         {
             if (onSelect == null)
-                onSelect = new OnSelectEvent();
+                onSelect = new SelectEvent();
             onSelect.AddListener(callback);
             Debug.Log($"Count : {onSelect.GetPersistentEventCount()}");
         }
@@ -374,7 +370,7 @@ namespace AdventCalendar.HandPointer
             UnityAction<HandPointerSelect> callback)
         {
             if (onSelectContinue == null)
-                onSelectContinue = new OnSelectEvent();
+                onSelectContinue = new SelectEvent();
             onSelectContinue.AddListener(callback);
         }
 

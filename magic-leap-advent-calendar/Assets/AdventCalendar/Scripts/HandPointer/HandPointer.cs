@@ -54,7 +54,7 @@ namespace AdventCalendar.HandPointer
             NoSelected,
             Selected,
         }
-
+        
 
         [SerializeField] Transform mainCamera;
         [SerializeField] float speed = 1f;
@@ -75,8 +75,9 @@ namespace AdventCalendar.HandPointer
         IHandPointerCursor rightCursor;
 
         // TODO : デバッグ用パラメータ.
-        public Transform fuga;
-        public Transform hoge;
+        private Vector3 debugRightShoulderPosition;
+        private Vector3 debugLeftShoulderPosition;
+        
         public float shoulderWidth = 0.2f;
         public float late = 0.3f;
         // =========================
@@ -121,7 +122,7 @@ namespace AdventCalendar.HandPointer
         
         void Update()
         {
-            DrawRay();
+            UpdateHandRay();
             
             if (LeftHandState == HandPointerState.Selected)
             {
@@ -152,7 +153,8 @@ namespace AdventCalendar.HandPointer
         }
 
 
-        void DrawRay()
+        
+        void UpdateHandRay()
         {
             if (!HandInput.Ready || !IsShow)
             {
@@ -166,18 +168,18 @@ namespace AdventCalendar.HandPointer
             leftCursor.Show();
             rightCursor.Show();
             
-            Vector3 tempTargetPosition = Vector3.zero;
-            (bool isValid, Vector3 pos) eyeTrackingTarget = GetEytTrackingTargetPos();
-            if (eyeTrackingTarget.isValid)
+            Vector3 tempTargetDir = Vector3.zero;
+            (bool isValid, Vector3 dir) eyeTrackingDir = GetEyeTrackingNormalizedDir();
+            if (eyeTrackingDir.isValid)
             {
-                tempTargetPosition = eyeTrackingTarget.pos;
+                tempTargetDir = eyeTrackingDir.dir;
             }
             else
             {
-                (bool isValid, Vector3 pos) result = GetHeadTrackingTargetPos();
-                if (result.isValid)
+                (bool isValid, Vector3 dir) headTrackingDir = GetHeadTrackingNormalizedDir();
+                if (headTrackingDir.isValid)
                 {
-                    tempTargetPosition = result.pos;
+                    tempTargetDir = headTrackingDir.dir;
                 }
                 else
                 {
@@ -191,16 +193,14 @@ namespace AdventCalendar.HandPointer
             
             // ここで肩から手までのベクトルを求める.
             Vector3 leftShoulderPosition = GetShoulderPosition(MLHandTracking.HandType.Left);
-            Vector3 leftHandTarget = leftPointerPosition.Start +
-                                     (leftPointerPosition.Start - leftShoulderPosition).normalized * PointerRayDistance;
-            leftHandTarget = Vector3.Lerp(leftHandTarget, tempTargetPosition, late);
+            Vector3 leftHandDir = (leftPointerPosition.Start - leftShoulderPosition).normalized;
+            Vector3 leftHandTarget = leftPointerPosition.Start + (Vector3.Lerp(leftHandDir, tempTargetDir, late) * PointerRayDistance);
             leftPointerPosition.SetTarget(Vector3.Lerp(leftPointerPosition.LastTarget, leftHandTarget, Time.deltaTime * speed));
             leftCursor.Update(LeftHandState, leftPointerPosition.Start, leftPointerPosition.Target);
 
             Vector3 rightShoulderPosition = GetShoulderPosition(MLHandTracking.HandType.Right);
-            Vector3 rightHandTarget = rightPointerPosition.Start +
-                                      (rightPointerPosition.Start - rightShoulderPosition).normalized * PointerRayDistance;
-            rightHandTarget = Vector3.Lerp(rightHandTarget, tempTargetPosition, late);
+            Vector3 rightHandDir = (rightPointerPosition.Start - rightShoulderPosition).normalized;
+            Vector3 rightHandTarget = rightPointerPosition.Start + (Vector3.Lerp(rightHandDir, tempTargetDir, late) * PointerRayDistance);
             rightPointerPosition.SetTarget(Vector3.Lerp(rightPointerPosition.LastTarget, rightHandTarget, Time.deltaTime * speed));
             rightCursor.Update(RightHandState, rightPointerPosition.Start, rightPointerPosition.Target);
         }
@@ -285,42 +285,19 @@ namespace AdventCalendar.HandPointer
             ret.enabled = false;
             return ret;
         }
-        
+
 
         /// <summary>
-        /// 人差し指の根元と親指の根元の中間座標を起点として.
+        /// 手の中心をスタートポイントとする.
         /// </summary>
         /// <param name="hand"></param>
         /// <returns></returns>
-        Vector3 GetRayStartPosition(ManagedHand hand)
+        Vector3 GetRayStartPosition(ManagedHand hand) 
             => Vector3.Lerp(hand.Skeleton.Thumb.Knuckle.positionFiltered, hand.Skeleton.Index.Knuckle.positionFiltered, 0.5f);
-
-
-        // TODO : あくまでRayまでを求めることとする( normalizeする )このメソッドは後で削除予定.
-        /// <summary>
-        /// Eyeトラッキングのターゲットを取得.
-        /// </summary>
-        /// <returns></returns>
-        (bool, Vector3) GetEytTrackingTargetPos()
-        {
-            if (!IsEyeTrackingValid) return (false, Vector3.zero);
-            
-            bool isBlink = MLEyes.LeftEye.IsBlinking || MLEyes.RightEye.IsBlinking;
-            if (isBlink) return (false, Vector3.zero);
-
-            // Eyeトラッキングが有効ならEyeトラッキングの向きで補正する.
-            float leftConfidence = MLEyes.LeftEye.CenterConfidence * -0.5f;
-            float rightConfidence = MLEyes.RightEye.CenterConfidence * 0.5f;
-            float eyeRatio = 0.5f + (leftConfidence + rightConfidence);
-            Vector3 gazeRay =  Vector3.Lerp(MLEyes.LeftEye.ForwardGaze, MLEyes.RightEye.ForwardGaze, eyeRatio).normalized;
-            Vector3 eyeTargetPos = mainCamera.position + (gazeRay * PointerRayDistance);
-
-            return (true, eyeTargetPos);
-        }
 
         
         /// <summary>
-        /// 
+        /// Eyeトラッキングの方向を取得.
         /// </summary>
         /// <returns></returns>
         private (bool isValid, Vector3 normalizedDir) GetEyeTrackingNormalizedDir()
@@ -337,29 +314,12 @@ namespace AdventCalendar.HandPointer
             return (true, Vector3.Lerp(MLEyes.LeftEye.ForwardGaze, MLEyes.RightEye.ForwardGaze, eyeRatio).normalized);
         }
 
-
-        // TODO : あくまでDirctionを求めるまでとする( normalize する )このメソッドは後で削除予定.
-        /// <summary>
-        /// Headトラッキングのターゲットを取得.
-        /// </summary>
-        /// <returns></returns>
-        (bool, Vector3) GetHeadTrackingTargetPos()
-        {
-            if (mainCamera == null) return (false, Vector3.zero);
-            
-            Vector3 targetPos = Vector3.zero;
-            targetPos = mainCamera.position + (mainCamera.forward.normalized * 2f);
-
-            return (true, targetPos);
-        }
-
         
         /// <summary>
-        /// 
+        /// 頭の向きを取得.
         /// </summary>
         /// <returns></returns>
-        private (bool isValid, Vector3 normalizedDir) GetHeadTrackingNormalizedDir()
-            => (mainCamera == null) ?(false, Vector3.zero) : (true, mainCamera.forward.normalized);
+        private (bool isValid, Vector3 normalizedDir) GetHeadTrackingNormalizedDir() => (mainCamera == null) ?(false, Vector3.zero) : (true, mainCamera.forward.normalized);
 
 
         /// <summary>
@@ -374,11 +334,21 @@ namespace AdventCalendar.HandPointer
             Vector3 shoulderPosition = headPosition + (mainCamera.right * (type == MLHandTracking.HandType.Left ? -shoulderWidth : shoulderWidth)) + (-mainCamera.up * 0.15f);
 
             if (type == MLHandTracking.HandType.Left)
-                hoge.position = shoulderPosition;
+                debugLeftShoulderPosition = shoulderPosition;
             else
-                fuga.position = shoulderPosition;            
+                debugRightShoulderPosition = shoulderPosition;
 
             return shoulderPosition;
+        }
+
+
+        private void OnDrawGizmos()
+        {
+            // 推定の肩の位置を表示.
+            Gizmos.color = Color.blue;
+            Gizmos.DrawWireSphere(debugLeftShoulderPosition, 0.1f);
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(debugRightShoulderPosition, 0.1f);
         }
 
 

@@ -356,10 +356,8 @@ MonoBehaviour:
   speed: 5
   cursorPrefab: {fileID: 4049655702216679560, guid: aded96314e16e00439bbca0f77430c15,
     type: 3}
-  fuga: {fileID: 1625703792}
-  hoge: {fileID: 1594185849}
   shoulderWidth: 0.15
-  late: 0.3
+  late: 0.5
 --- !u!1 &1594185846
 GameObject:
   m_ObjectHideFlags: 0
@@ -433,7 +431,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1594185846}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 1.084}
+  m_LocalPosition: {x: -0.509, y: 0, z: 1.084}
   m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_Children: []
   m_Father: {fileID: 0}

@@ -287,8 +287,9 @@ namespace AdventCalendar.HandPointer
         /// </summary>
         /// <param name="hand"></param>
         /// <returns></returns>
-        private Vector3 GetRayStartPosition(ManagedHand hand) 
+        private Vector3 GetRayStartPosition(ManagedHand hand)
             => Vector3.Lerp(hand.Skeleton.Thumb.Knuckle.positionFiltered, hand.Skeleton.Index.Knuckle.positionFiltered, 0.5f);
+            //=> hand.Skeleton.HandCenter.positionFiltered;
 
         
         /// <summary>

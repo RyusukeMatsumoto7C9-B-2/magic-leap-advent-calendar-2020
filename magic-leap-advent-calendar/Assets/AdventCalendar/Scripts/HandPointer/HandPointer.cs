@@ -283,7 +283,7 @@ namespace AdventCalendar.HandPointer
 
 
         /// <summary>
-        /// 手の中心をスタートポイントとする.
+        /// 親指の根元と人差し指の根元の中間をスタートポイントとする.
         /// </summary>
         /// <param name="hand"></param>
         /// <returns></returns>

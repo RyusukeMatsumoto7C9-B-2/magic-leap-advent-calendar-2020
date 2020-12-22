@@ -13,17 +13,21 @@ namespace AdventCalendar.HandPointer
     {
 
         #region --- class SelectEvent ---
+        /// <summary>
+        /// ハンドポインタで選択したイベント.
+        /// </summary>
         private class SelectEvent : UnityEvent<HandPointerSelect> { }
         #endregion --- class SelectEvent ---
 
         
         #region --- class PointerPosition ---
+        /// <summary>
+        /// ポインタのカーソル座標.
+        /// </summary>
         private class PointerPosition
         {
             public Vector3 Target { get; private set; } = Vector3.zero;
             public Vector3 LastTarget { get; private set; } = Vector3.zero;
-
-            // TODO : 新しいパラメータこっちに差し替える.
             public Vector3 Start { get; private set; } = Vector3.zero;
             public Vector3 LastStart { get; private set; } = Vector3.zero;
 
@@ -76,10 +80,14 @@ namespace AdventCalendar.HandPointer
         private IHandPointerCursor rightCursor;
 
         // TODO : デバッグ用パラメータ.
+
+        // 肩幅、お好みのサイズに調整.
+        [SerializeField] private float shoulderWidth = 0.2f;
+        
+        // 疑似的に決定した左右の型の位置.
         private Vector3 debugRightShoulderPosition;
         private Vector3 debugLeftShoulderPosition;
         
-        public float shoulderWidth = 0.2f;
         // =========================
         
 
